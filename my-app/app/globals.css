@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Tailwind v4 uses @theme for custom variables, 
+   but for raw keyframes we still use standard CSS */
+@layer utilities {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotateY(-5deg); }
+    50% { transform: translateY(-20px) rotateY(5deg); }
+  }
+
+  @keyframes trophy-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1.15); }
+    50% { transform: translate(-50%, -55%) scale(1.18); }
+  }
+}
