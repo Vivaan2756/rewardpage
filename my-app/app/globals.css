@@ -23,3 +23,18 @@
     50% { transform: translate(-50%, -55%) scale(1.18); }
   }
 }
+@keyframes recoil {
+  0% { transform: translateX(calc(-50% + var(--sway))) translateY(0) scale(1.1); }
+  20% { transform: translateX(calc(-50% + var(--sway))) translateY(40px) scale(1.2); }
+  100% { transform: translateX(calc(-50% + var(--sway))) translateY(0) scale(1.1); }
+}
+
+@keyframes muzzle-flare {
+  0% { transform: translate(-50%, 0) scale(0); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+  100% { transform: translate(-50%, -80%) scale(2); opacity: 0; }
+}
+
+.animate-recoil {
+  animation: recoil 0.2s ease-out;
+}

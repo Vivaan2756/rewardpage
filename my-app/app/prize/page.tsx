@@ -1,826 +1,261 @@
-
-
-// "use client";
-
-// import React, { useState, useEffect, useRef } from 'react';
-
-// const SHOOT_SEQUENCE = ['c2', 'c1', 'c3'];
-
-// interface CardProps {
-//   id: string;
-//   suit: string;
-//   title: string;
-//   prize: string;
-//   glowColor: string;
-//   isRevealed: boolean;
-//   delay: string;
-//   imageSrc: string;
-//   positionOrder: string;
-// }
-
-// // --- Card Component with Shatter Animation ---
-// function TrophyCard({ id, suit, title, prize, glowColor, isRevealed, delay, imageSrc, positionOrder }: CardProps) {
-//   return (
-//     <div 
-//       id={id}
-//       className={`relative w-[160px] h-[230px] md:w-[260px] md:h-[380px] transition-all duration-500 ${positionOrder}`}
-//       style={{ animation: `drift 8s ease-in-out infinite ${delay}` }}
-//     >
-//       <div className="relative w-full h-full preserve-3d">
-        
-//         {/* REVEALED CONTENT (Trophy & Prize) */}
-//         <div 
-//           className={`absolute inset-0 rounded-2xl flex flex-col items-center justify-center transition-all duration-1000 ease-out ${
-//             isRevealed ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-//           }`}
-//           style={{ 
-//             background: 'radial-gradient(circle at center, #111 0%, #000 100%)',
-//             boxShadow: isRevealed ? `0 0 50px ${glowColor}33` : 'none'
-//           }}
-//         >
-//           <img 
-//             src={imageSrc} 
-//             alt={title}
-//             className="absolute w-[140%] max-w-none pointer-events-none z-10"
-//             style={{ 
-//               top: '45%', left: '50%',
-//               transform: 'translate(-50%, -50%)',
-//               filter: isRevealed ? `drop-shadow(0 0 30px ${glowColor})` : 'none',
-//             }}
-//           />
-//           <div className="absolute bottom-10 z-20 text-center">
-//             <div className="text-white text-2xl md:text-4xl font-black" style={{ textShadow: `0 0 20px ${glowColor}` }}>
-//               {prize}
-//             </div>
-//             <div className="text-[8px] md:text-[10px] text-white/40 tracking-[4px] uppercase mt-2">{title}</div>
-//           </div>
-//         </div>
-
-//         {/* FRAGILE CARD BACK (The part that cracks) */}
-//         <div 
-//           className={`absolute inset-0 z-30 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-7xl md:text-9xl text-white/5 shadow-2xl transition-all duration-150 ${
-//             isRevealed ? 'animate-shatter pointer-events-none' : 'opacity-100'
-//           }`}
-//         >
-//           <span className="select-none font-black italic opacity-20">{suit}</span>
-          
-//           {/* Subtle "Crack" lines overlay (visible just before shatter) */}
-//           <div className={`absolute inset-0 opacity-0 bg-[url('https://www.transparenttextures.com/patterns/glass-shattered.png')] invert transition-opacity duration-75 ${isRevealed ? 'opacity-100' : ''}`} />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default function PrizePage() {
-//   const [timeLeft, setTimeLeft] = useState("02");
-//   const [currentShotIndex, setCurrentShotIndex] = useState(0);
-//   const [revealedIds, setRevealedIds] = useState<string[]>([]);
-//   const [isAutoAiming, setIsAutoAiming] = useState(false);
-//   const [isRecoil, setIsRecoil] = useState(false);
-//   const [shake, setShake] = useState(false);
-
-//   const gunRef = useRef<HTMLDivElement>(null);
-//   const muzzleRef = useRef<HTMLDivElement>(null);
-//   const laserRef = useRef<HTMLDivElement>(null);
-
-//   // Mouse interactivity
-//   useEffect(() => {
-//     const handleMouseMove = (e: MouseEvent) => {
-//       if (isAutoAiming || !gunRef.current) return;
-//       const sway = (e.clientX - window.innerWidth / 2) / 40;
-//       gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px))`;
-//     };
-//     window.addEventListener('mousemove', handleMouseMove);
-//     return () => window.removeEventListener('mousemove', handleMouseMove);
-//   }, [isAutoAiming]);
-
-//   // 2-Second Timer Cycle
-//   useEffect(() => {
-//     if (currentShotIndex >= SHOOT_SEQUENCE.length) {
-//       setTimeout(() => setTimeLeft("CLEAR"), 500);
-//       return;
-//     }
-
-//     let countdown = 2;
-//     setTimeLeft("02");
-
-//     const timer = setInterval(async () => {
-//       countdown--;
-//       if (countdown >= 0) setTimeLeft(`0${countdown}`);
-
-//       if (countdown <= 0) {
-//         clearInterval(timer);
-//         await handleAutoShoot();
-//       }
-//     }, 1000);
-
-//     return () => clearInterval(timer);
-//   }, [currentShotIndex]);
-
-//   const handleAutoShoot = async () => {
-//     setIsAutoAiming(true);
-//     const targetId = SHOOT_SEQUENCE[currentShotIndex];
-//     const targetEl = document.getElementById(targetId);
-
-//     if (!targetEl || !gunRef.current || !laserRef.current || !muzzleRef.current) return;
-
-//     // 1. Aim to Target
-//     const rect = targetEl.getBoundingClientRect();
-//     const tx = rect.left + rect.width / 2;
-//     const ty = rect.top + rect.height / 2;
-
-//     const sway = (tx - window.innerWidth / 2) / 4;
-//     gunRef.current.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
-//     gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px)) scale(1.05)`;
-
-//     await new Promise(r => setTimeout(r, 450));
-
-//     // 2. Fire Laser
-//     const mPos = muzzleRef.current.getBoundingClientRect();
-//     const originX = mPos.left + mPos.width / 2;
-//     const originY = mPos.top;
-//     const angle = Math.atan2(ty - originY, tx - originX);
-//     const dist = Math.sqrt(Math.pow(ty - originY, 2) + Math.pow(tx - originX, 2));
-
-//     const laser = laserRef.current;
-//     laser.style.left = `${originX}px`;
-//     laser.style.top = `${originY}px`;
-//     laser.style.height = `${dist}px`;
-//     laser.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
-    
-//     laser.style.opacity = '1';
-//     setIsRecoil(true);
-//     setShake(true);
-
-//     // 3. Impact & Shatter
-//     setTimeout(() => {
-//       laser.style.opacity = '0';
-//       setIsRecoil(false);
-//       setShake(false);
-//       setRevealedIds(prev => [...prev, targetId]);
-//       setIsAutoAiming(false);
-//       setCurrentShotIndex(prev => prev + 1);
-//     }, 100);
-//   };
-
-//   return (
-//     <div className={`relative w-full h-screen overflow-hidden bg-black transition-transform duration-75 ${shake ? 'scale-105 rotate-1' : 'scale-100'}`}>
-      
-//       {/* Cinematic Background */}
-//       <div 
-//         className="fixed inset-0 z-0 bg-center bg-cover"
-//         style={{ backgroundImage: "url('/bg_image.jpeg')", filter: 'brightness(0.3) contrast(1.2)' }} 
-//       />
-//       <div className="fixed inset-0 z-[1] bg-gradient-to-b from-black/40 via-transparent to-black/80" />
-
-//       {/* VISA HUD */}
-//       <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[4000] text-center tracking-[10px]">
-//         <div className="text-[10px] text-white/40 font-bold uppercase mb-1">Protocol Status</div>
-//         <div 
-//           className="text-7xl md:text-8xl font-black transition-all duration-500"
-//           style={{ 
-//             color: timeLeft === "CLEAR" ? '#00ff41' : '#ff1111',
-//             textShadow: `0 0 30px ${timeLeft === "CLEAR" ? '#00ff4188' : '#ff111188'}`
-//           }}
-//         >
-//           {timeLeft}
-//         </div>
-//       </div>
-
-//       {/* Laser FX */}
-//       <div ref={laserRef} className="fixed w-[4px] bg-white shadow-[0_0_20px_#ff1111,0_0_40px_#ff1111] z-[1500] pointer-events-none origin-top opacity-0" />
-
-//       {/* Railgun Body */}
-//       <div 
-//         ref={gunRef}
-//         className={`fixed -bottom-10 left-1/2 w-[140px] h-[320px] z-[2000] pointer-events-none ${
-//           isRecoil ? 'translate-y-10 !duration-75' : 'transition-transform duration-300'
-//         }`}
-//         style={{ transform: 'translateX(-50%)' }}
-//       >
-//         <div className="relative w-10 h-64 mx-auto bg-gradient-to-b from-neutral-900 to-black border-x border-t border-white/10 rounded-t-md">
-//           <div ref={muzzleRef} className="absolute top-0 left-1/2" />
-//           {isRecoil && <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full blur-2xl animate-pulse" />}
-//         </div>
-//       </div>
-
-//       {/* Arena Cards */}
-//       <div className="relative z-[1000] flex items-center justify-center h-full gap-8 md:gap-20 perspective-[2000px] p-10">
-//         <TrophyCard 
-//           id="c1" suit="♥" title="QUEEN OF HEARTS" prize="15,000" 
-//           glowColor="#1eafd7" imageSrc="queen_trophy.png"
-//           isRevealed={revealedIds.includes('c1')}
-//           delay="0s" positionOrder="md:order-1"
-//         />
-//         <TrophyCard 
-//           id="c2" suit="♠" title="KING OF SPADES" prize="25,000" 
-//           glowColor="#ff4d4d" imageSrc="king_trophy.png"
-//           isRevealed={revealedIds.includes('c2')}
-//           delay="-2s" positionOrder="md:order-2"
-//         />
-//         <TrophyCard 
-//           id="c3" suit="♣" title="JACK OF CLUBS" prize="10,000" 
-//           glowColor="#2bff8a" imageSrc="jack_trophy.png"
-//           isRevealed={revealedIds.includes('c3')}
-//           delay="-4s" positionOrder="md:order-3"
-//         />
-//       </div>
-
-//       <style jsx global>{`
-//         @keyframes drift {
-//           0%, 100% { transform: translateY(0px) rotateX(0deg); }
-//           50% { transform: translateY(-20px) rotateX(3deg); }
-//         }
-//         @keyframes shatter {
-//           0% { opacity: 1; transform: scale(1); clip-path: inset(0 0 0 0); }
-//           100% { 
-//             opacity: 0; 
-//             transform: scale(1.6) rotate(5deg); 
-//             clip-path: polygon(10% 10%, 90% 0, 100% 80%, 30% 100%, 0 50%);
-//             filter: blur(10px) brightness(2);
-//           }
-//         }
-//         .animate-shatter {
-//           animation: shatter 0.5s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
-//         }
-//         .preserve-3d { transform-style: preserve-3d; }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-// import React, { useState, useEffect, useRef } from 'react';
-
-// const SHOOT_SEQUENCE = ['c2', 'c1', 'c3']; // King, Queen, Jack
-
-// interface CardProps {
-//   id: string;
-//   suit: string;
-//   title: string;
-//   prize: string;
-//   glowColor: string;
-//   isRevealed: boolean;
-//   delay: string;
-//   imageSrc: string;
-//   positionOrder: string;
-//   onManualClick: (id: string) => void;
-// }
-
-// function TrophyCard({ id, suit, title, prize, glowColor, isRevealed, delay, imageSrc, positionOrder, onManualClick }: CardProps) {
-//   return (
-//     <div 
-//       id={id}
-//       onClick={() => onManualClick(id)}
-//       className={`relative w-[160px] h-[230px] md:w-[260px] md:h-[380px] transition-all duration-500 cursor-crosshair ${positionOrder} active:scale-95`}
-//       style={{ animation: `drift 8s ease-in-out infinite ${delay}` }}
-//     >
-//       <div className="relative w-full h-full preserve-3d">
-//         {/* REVEALED CONTENT */}
-//         <div className={`absolute inset-0 rounded-2xl flex flex-col items-center justify-center transition-all duration-1000 ${isRevealed ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
-//           style={{ background: 'radial-gradient(circle at center, #111 0%, #000 100%)', boxShadow: isRevealed ? `0 0 50px ${glowColor}33` : 'none' }}>
-//           <img src={imageSrc} alt={title} className="absolute w-[140%] max-w-none pointer-events-none z-10"
-//             style={{ top: '45%', left: '50%', transform: 'translate(-50%, -50%)', filter: isRevealed ? `drop-shadow(0 0 30px ${glowColor})` : 'none' }} />
-//           <div className="absolute bottom-10 z-20 text-center">
-//             <div className="text-white text-2xl md:text-4xl font-black" style={{ textShadow: `0 0 20px ${glowColor}` }}>{prize}</div>
-//             <div className="text-[8px] md:text-[10px] text-white/40 tracking-[4px] uppercase mt-2">{title}</div>
-//           </div>
-//         </div>
-
-//         {/* CARD BACK */}
-//         <div className={`absolute inset-0 z-30 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-7xl md:text-9xl text-white/5 shadow-2xl transition-all duration-150 ${isRevealed ? 'animate-shatter pointer-events-none' : 'opacity-100'}`}>
-//           <span className="select-none font-black italic opacity-20">{suit}</span>
-//           <div className={`absolute inset-0 opacity-0 bg-[url('https://www.transparenttextures.com/patterns/glass-shattered.png')] invert transition-opacity duration-75 ${isRevealed ? 'opacity-100' : ''}`} />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default function BorderlandGame() {
-//   const [timeLeft, setTimeLeft] = useState(5);
-//   const [currentShotIndex, setCurrentShotIndex] = useState(0);
-//   const [revealedIds, setRevealedIds] = useState<string[]>([]);
-//   const [isAutoAiming, setIsAutoAiming] = useState(false);
-//   const [shake, setShake] = useState(false);
-
-//   const gunRef = useRef<HTMLDivElement>(null);
-//   const muzzleRef = useRef<HTMLDivElement>(null);
-//   const laserRef = useRef<HTMLDivElement>(null);
-//   const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-//   // 1. Mouse Follow
-//   useEffect(() => {
-//     const handleMouseMove = (e: MouseEvent) => {
-//       if (isAutoAiming || !gunRef.current) return;
-//       const sway = (e.clientX - window.innerWidth / 2) / 40;
-//       gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px))`;
-//     };
-//     window.addEventListener('mousemove', handleMouseMove);
-//     return () => window.removeEventListener('mousemove', handleMouseMove);
-//   }, [isAutoAiming]);
-
-//   // 2. Start/Reset 5s Timer
-//   useEffect(() => {
-//     if (currentShotIndex >= SHOOT_SEQUENCE.length) return;
-
-//     setTimeLeft(5);
-//     // Clear any existing timer
-//     if (autoTimerRef.current) clearInterval(autoTimerRef.current);
-
-//     // Start countdown for the current index
-//     autoTimerRef.current = setInterval(() => {
-//       setTimeLeft((prev) => {
-//         if (prev <= 1) {
-//           clearInterval(autoTimerRef.current!);
-//           handleShoot(SHOOT_SEQUENCE[currentShotIndex]);
-//           return 0;
-//         }
-//         return prev - 1;
-//       });
-//     }, 1000);
-
-//     return () => { if (autoTimerRef.current) clearInterval(autoTimerRef.current); };
-//   }, [currentShotIndex]);
-
-//   const handleShoot = async (targetId: string) => {
-//     // Prevent double shooting if already revealed or aiming
-//     if (revealedIds.includes(targetId) || isAutoAiming) return;
-    
-//     // Ensure user follows the sequence King -> Queen -> Jack
-//     if (targetId !== SHOOT_SEQUENCE[currentShotIndex]) return;
-
-//     setIsAutoAiming(true);
-//     const targetEl = document.getElementById(targetId);
-//     if (!targetEl || !gunRef.current || !laserRef.current || !muzzleRef.current) return;
-
-//     const rect = targetEl.getBoundingClientRect();
-//     const tx = rect.left + rect.width / 2;
-//     const ty = rect.top + rect.height / 2;
-
-//     // Gun movement
-//     const sway = (tx - window.innerWidth / 2) / 4;
-//     gunRef.current.style.transition = "transform 0.3s cubic-bezier(0.19, 1, 0.22, 1)";
-//     gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px)) scale(1.1)`;
-
-//     await new Promise(r => setTimeout(r, 300));
-
-//     // Laser Calc
-//     const mPos = muzzleRef.current.getBoundingClientRect();
-//     const originX = mPos.left + mPos.width / 2;
-//     const originY = mPos.top;
-//     const angle = Math.atan2(ty - originY, tx - originX);
-//     const dist = Math.sqrt(Math.pow(ty - originY, 2) + Math.pow(tx - originX, 2));
-
-//     const laser = laserRef.current;
-//     laser.style.left = `${originX}px`;
-//     laser.style.top = `${originY}px`;
-//     laser.style.height = `${dist}px`;
-//     laser.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
-    
-//     laser.style.opacity = '1';
-//     setShake(true);
-
-//     setTimeout(() => {
-//       laser.style.opacity = '0';
-//       setShake(false);
-//       setRevealedIds(prev => [...prev, targetId]);
-//       setIsAutoAiming(false);
-//       setCurrentShotIndex(prev => prev + 1);
-//     }, 100);
-//   };
-
-//   return (
-//     <div className={`relative w-full h-screen overflow-hidden bg-black transition-transform duration-75 ${shake ? 'scale-105' : 'scale-100'}`}>
-//       <div className="fixed inset-0 z-0 bg-center bg-cover" style={{ backgroundImage: "url('/bg_image.jpeg')", filter: 'brightness(0.3) contrast(1.2)' }} />
-      
-//       {/* HUD */}
-//       <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[4000] text-center">
-//         <div className="text-[10px] text-white/40 font-bold uppercase tracking-[5px] mb-1">Auto-Execute In</div>
-//         <div className="text-7xl font-black text-red-600 drop-shadow-2xl">
-//           {currentShotIndex < 3 ? `0${timeLeft}` : "GAME CLEAR"}
-//         </div>
-//       </div>
-
-//       <div ref={laserRef} className="fixed w-[4px] bg-white shadow-[0_0_20px_#ff1111] z-[1500] pointer-events-none origin-top opacity-0" />
-
-//       {/* Gun */}
-//       <div ref={gunRef} className="fixed -bottom-10 left-1/2 w-[140px] h-[320px] z-[2000] pointer-events-none transition-transform duration-300" style={{ transform: 'translateX(-50%)' }}>
-//         <div className="relative w-10 h-64 mx-auto bg-gradient-to-b from-neutral-800 to-black border-x border-white/10 rounded-t-md">
-//           <div ref={muzzleRef} className="absolute top-0 left-1/2" />
-//         </div>
-//       </div>
-
-//       {/* Arena */}
-//       <div className="relative z-[1000] flex items-center justify-center h-full gap-8 md:gap-20 perspective-[2000px]">
-//         <TrophyCard id="c1" suit="♥" title="QUEEN OF HEARTS" prize="15,000" glowColor="#1eafd7" imageSrc="queen_trophy.png" 
-//           isRevealed={revealedIds.includes('c1')} delay="0s" positionOrder="md:order-1" onManualClick={handleShoot} />
-//         <TrophyCard id="c2" suit="♠" title="KING OF SPADES" prize="25,000" glowColor="#ff4d4d" imageSrc="king_trophy.png" 
-//           isRevealed={revealedIds.includes('c2')} delay="-2s" positionOrder="md:order-2" onManualClick={handleShoot} />
-//         <TrophyCard id="c3" suit="♣" title="JACK OF CLUBS" prize="10,000" glowColor="#2bff8a" imageSrc="jack_trophy.png" 
-//           isRevealed={revealedIds.includes('c3')} delay="-4s" positionOrder="md:order-3" onManualClick={handleShoot} />
-//       </div>
-
-//       <style jsx global>{`
-//         @keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-//         @keyframes shatter {
-//           0% { opacity: 1; transform: scale(1); }
-//           100% { opacity: 0; transform: scale(1.8); clip-path: polygon(10% 10%, 90% 0, 100% 80%, 0 50%); filter: blur(5px) brightness(2); }
-//         }
-//         .animate-shatter { animation: shatter 0.5s forwards ease-out; }
-//         .preserve-3d { transform-style: preserve-3d; }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-// import React, { useState, useEffect, useRef } from 'react';
-
-// // The order of IDs to be shot: King (c2), Queen (c1), Jack (c3)
-// const SHOOT_SEQUENCE = ['c2', 'c1', 'c3'];
-
-// interface CardProps {
-//   id: string;
-//   suit: string;
-//   title: string;
-//   prize: string;
-//   glowColor: string;
-//   isRevealed: boolean;
-//   delay: string;
-//   imageSrc: string;
-//   positionOrder: string;
-//   onManualClick: (id: string) => void;
-// }
-
-// function TrophyCard({ id, suit, title, prize, glowColor, isRevealed, delay, imageSrc, positionOrder, onManualClick }: CardProps) {
-//   return (
-//     <div 
-//       id={id}
-//       onClick={() => onManualClick(id)}
-//       className={`relative w-[160px] h-[230px] md:w-[260px] md:h-[380px] transition-all duration-500 cursor-crosshair ${positionOrder} active:scale-95`}
-//       style={{ animation: `drift 8s ease-in-out infinite ${delay}` }}
-//     >
-//       <div className="relative w-full h-full preserve-3d">
-//         <div className={`absolute inset-0 rounded-2xl flex flex-col items-center justify-center transition-all duration-1000 ${isRevealed ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
-//           style={{ background: 'radial-gradient(circle at center, #111 0%, #000 100%)', boxShadow: isRevealed ? `0 0 50px ${glowColor}33` : 'none' }}>
-//           <img src={imageSrc} alt={title} className="absolute w-[140%] max-w-none pointer-events-none z-10"
-//             style={{ top: '45%', left: '50%', transform: 'translate(-50%, -50%)', filter: isRevealed ? `drop-shadow(0 0 30px ${glowColor})` : 'none' }} />
-//           <div className="absolute bottom-10 z-20 text-center">
-//             <div className="text-white text-2xl md:text-4xl font-black" style={{ textShadow: `0 0 20px ${glowColor}` }}>{prize}</div>
-//             <div className="text-[8px] md:text-[10px] text-white/40 tracking-[4px] uppercase mt-2">{title}</div>
-//           </div>
-//         </div>
-
-//         <div className={`absolute inset-0 z-30 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-7xl md:text-9xl text-white/5 shadow-2xl transition-all duration-150 ${isRevealed ? 'animate-shatter pointer-events-none' : 'opacity-100'}`}>
-//           <span className="select-none font-black italic opacity-20">{suit}</span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default function BorderlandGame() {
-//   const [timeLeft, setTimeLeft] = useState(5);
-//   const [currentShotIndex, setCurrentShotIndex] = useState(0);
-//   const [revealedIds, setRevealedIds] = useState<string[]>([]);
-//   const [isAutoAiming, setIsAutoAiming] = useState(false);
-//   const [shake, setShake] = useState(false);
-
-//   const gunRef = useRef<HTMLDivElement>(null);
-//   const muzzleRef = useRef<HTMLDivElement>(null);
-//   const laserRef = useRef<HTMLDivElement>(null);
-
-//   // 1. Mouse Follow
-//   useEffect(() => {
-//     const handleMouseMove = (e: MouseEvent) => {
-//       if (isAutoAiming || !gunRef.current) return;
-//       const sway = (e.clientX - window.innerWidth / 2) / 40;
-//       gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px))`;
-//     };
-//     window.addEventListener('mousemove', handleMouseMove);
-//     return () => window.removeEventListener('mousemove', handleMouseMove);
-//   }, [isAutoAiming]);
-
-//   // 2. Timer Logic - Simplified and Robust
-//   useEffect(() => {
-//     // If we finished the sequence, stop everything
-//     if (currentShotIndex >= SHOOT_SEQUENCE.length) return;
-
-//     setTimeLeft(5);
-
-//     const timer = setInterval(() => {
-//       setTimeLeft((prev) => {
-//         if (prev <= 1) {
-//           clearInterval(timer);
-//           handleShoot(SHOOT_SEQUENCE[currentShotIndex]);
-//           return 0;
-//         }
-//         return prev - 1;
-//       });
-//     }, 1000);
-
-//     return () => clearInterval(timer);
-//   }, [currentShotIndex]);
-
-//   const handleShoot = async (targetId: string) => {
-//     // Guard: Prevent out-of-order shooting or shooting while busy
-//     if (isAutoAiming || revealedIds.includes(targetId)) return;
-//     if (targetId !== SHOOT_SEQUENCE[currentShotIndex]) return;
-
-//     setIsAutoAiming(true);
-    
-//     const targetEl = document.getElementById(targetId);
-//     if (!targetEl || !gunRef.current || !laserRef.current || !muzzleRef.current) {
-//       setIsAutoAiming(false);
-//       return;
-//     }
-
-//     // Aiming calculation
-//     const rect = targetEl.getBoundingClientRect();
-//     const tx = rect.left + rect.width / 2;
-//     const ty = rect.top + rect.height / 2;
-//     const sway = (tx - window.innerWidth / 2) / 4;
-
-//     // Move Gun
-//     gunRef.current.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
-//     gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px)) scale(1.1)`;
-
-//     await new Promise(r => setTimeout(r, 400));
-
-//     // Fire Laser
-//     const mPos = muzzleRef.current.getBoundingClientRect();
-//     const originX = mPos.left;
-//     const originY = mPos.top;
-//     const angle = Math.atan2(ty - originY, tx - originX);
-//     const dist = Math.sqrt(Math.pow(ty - originY, 2) + Math.pow(tx - originX, 2));
-
-//     const laser = laserRef.current;
-//     laser.style.left = `${originX}px`;
-//     laser.style.top = `${originY}px`;
-//     laser.style.height = `${dist}px`;
-//     laser.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
-//     laser.style.opacity = '1';
-    
-//     setShake(true);
-
-//     // Resolution
-//     setTimeout(() => {
-//       laser.style.opacity = '0';
-//       setShake(false);
-//       setRevealedIds(prev => [...prev, targetId]);
-//       setIsAutoAiming(false);
-//       // Move to next card in sequence
-//       setCurrentShotIndex(prev => prev + 1);
-//     }, 150);
-//   };
-
-//   return (
-//     <div className={`relative w-full h-screen overflow-hidden bg-black transition-transform duration-75 ${shake ? 'scale-105' : 'scale-100'}`}>
-//       <div className="fixed inset-0 z-0 bg-center bg-cover" style={{ backgroundImage: "url('/bg_image.jpeg')", filter: 'brightness(0.3) contrast(1.2)' }} />
-      
-//       {/* HUD */}
-//       <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[4000] text-center">
-//         <div className="text-[10px] text-white/40 font-bold uppercase tracking-[5px] mb-1">
-//             {currentShotIndex < 3 ? "Auto-Execute In" : "System Status"}
-//         </div>
-//         <div className={`text-7xl font-black transition-colors duration-500 ${currentShotIndex < 3 ? 'text-red-600' : 'text-green-500'}`}>
-//           {currentShotIndex < 3 ? `0${timeLeft}` : "GAME CLEAR"}
-//         </div>
-//       </div>
-
-//       <div ref={laserRef} className="fixed w-[4px] bg-white shadow-[0_0_20px_#ff1111] z-[1500] pointer-events-none origin-top opacity-0" />
-
-//       {/* Gun */}
-//       <div ref={gunRef} className="fixed -bottom-10 left-1/2 w-[140px] h-[320px] z-[2000] pointer-events-none" style={{ transform: 'translateX(-50%)' }}>
-//         <div className="relative w-10 h-64 mx-auto bg-gradient-to-b from-neutral-800 to-black border-x border-white/10 rounded-t-md">
-//           <div ref={muzzleRef} className="absolute top-0 left-1/2" />
-//         </div>
-//       </div>
-
-//       {/* Arena */}
-//       <div className="relative z-[1000] flex items-center justify-center h-full gap-8 md:gap-20 perspective-[2000px]">
-//         {/* QUEEN - Order 1 */}
-//         <TrophyCard id="c1" suit="♥" title="QUEEN OF HEARTS" prize="15,000" glowColor="#1eafd7" imageSrc="queen_trophy.png" 
-//           isRevealed={revealedIds.includes('c1')} delay="0s" positionOrder="order-1" onManualClick={handleShoot} />
-        
-//         {/* KING - Order 2 */}
-//         <TrophyCard id="c2" suit="♠" title="KING OF SPADES" prize="25,000" glowColor="#ff4d4d" imageSrc="king_trophy.png" 
-//           isRevealed={revealedIds.includes('c2')} delay="-2s" positionOrder="order-2" onManualClick={handleShoot} />
-        
-//         {/* JACK - Order 3 */}
-//         <TrophyCard id="c3" suit="♣" title="JACK OF CLUBS" prize="10,000" glowColor="#2bff8a" imageSrc="jack_trophy.png" 
-//           isRevealed={revealedIds.includes('c3')} delay="-4s" positionOrder="order-3" onManualClick={handleShoot} />
-//       </div>
-
-//       <style jsx global>{`
-//         @keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-//         @keyframes shatter {
-//           0% { opacity: 1; transform: scale(1); }
-//           100% { opacity: 0; transform: scale(1.8); filter: blur(10px); }
-//         }
-//         .animate-shatter { animation: shatter 0.5s forwards ease-out; }
-//         .preserve-3d { transform-style: preserve-3d; }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 
-const SHOOT_SEQUENCE = ['c2', 'c1', 'c3']; // King -> Queen -> Jack
+const SHOOT_SEQUENCE = ['c2', 'c1', 'c3'];
 
-interface CardProps {
-  id: string;
-  suit: string;
-  title: string;
-  prize: string;
-  glowColor: string;
-  isRevealed: boolean;
-  delay: string;
-  imageSrc: string;
-  positionOrder: string;
-  onManualClick: (id: string) => void;
+// --- Components ---
+
+function ShatterEffect({ color }: { color: string }) {
+  const shards = Array.from({ length: 15 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100 + '%',
+    top: Math.random() * 100 + '%',
+    tx: (Math.random() - 0.5) * 400, 
+    ty: Math.random() * 500 + 300,   
+    rot: Math.random() * 720,        
+    size: Math.random() * 15 + 5,    
+    delay: Math.random() * 0.1,
+    bg: i % 3 === 0 ? '#fff' : color, 
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-50">
+      {shards.map((s) => (
+        <div
+          key={s.id}
+          className="absolute backdrop-blur-[1px]"
+          style={{
+            left: s.left,
+            top: s.top,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            backgroundColor: s.bg,
+            boxShadow: `0 0 10px ${s.bg}`,
+            clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)',
+            animation: `fallDown 1.2s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94) ${s.delay}s`,
+            '--tx': `${s.tx}px`,
+            '--ty': `${s.ty}px`,
+            '--rot': `${s.rot}deg`,
+          } as any}
+        />
+      ))}
+    </div>
+  );
 }
 
-function TrophyCard({ id, suit, title, prize, glowColor, isRevealed, delay, imageSrc, positionOrder, onManualClick }: CardProps) {
+function CrackedOverlay({ color }: { color: string }) {
+  return (
+    <div className="absolute inset-0 z-40 pointer-events-none rounded-2xl overflow-hidden bg-white/10 backdrop-blur-[1px]">
+      <svg className="w-full h-full stroke-white/80 stroke-[3px] fill-none" viewBox="0 0 100 100">
+        <path d="M50 50 L55 40 L45 30 L52 15" className="animate-pulse" />
+        <path d="M50 50 L65 55 L75 45 L90 52" className="animate-pulse" />
+        <path d="M50 50 L40 60 L45 75 L30 85" className="animate-pulse" />
+        <path d="M50 50 L35 45 L25 55 L10 40" className="animate-pulse" />
+        <circle cx="50" cy="50" r="5" style={{ stroke: color }} className="opacity-50" />
+      </svg>
+      <div className="absolute inset-0 bg-white animate-impact-flash" />
+    </div>
+  );
+}
+
+function TrophyCard({ id, title, prize, glowColor, isRevealed, delay, imageSrc, frontImage, isCracking, isFanned, index, onManualClick }: any) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getTransform = () => {
+    if (!isFanned) return 'translate(0, 0) scale(0.5)';
+    if (isMobile) {
+      switch (id) {
+        case 'c2': return 'translate(0, -30%) scale(0.8)'; 
+        case 'c1': return 'translate(-50%, 55%) scale(0.8)';
+        case 'c3': return 'translate(50%, 55%) scale(0.8)';
+        default: return 'translate(0,0)';
+      }
+    }
+    const xOffsets = ["-140%", "0%", "140%"];
+    const rotations = ["-5deg", "0deg", "5deg"];
+    return `translateX(${xOffsets[index]}) rotate(${rotations[index]})`;
+  };
+
+  const fanStyle = {
+    transform: getTransform(),
+    opacity: isFanned ? 1 : 0.8,
+    zIndex: isFanned ? (id === 'c2' ? 1010 : 1000 + index) : 1000 + index,
+    transition: 'all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+  };
+
   return (
     <div 
       id={id}
-      onClick={() => onManualClick(id)}
-      className={`relative w-[160px] h-[230px] md:w-[260px] md:h-[380px] transition-all duration-500 cursor-crosshair ${positionOrder} active:scale-95`}
-      style={{ animation: `drift 8s ease-in-out infinite ${delay}` }}
+      onClick={() => onManualClick(id, glowColor)}
+      className={`absolute w-[160px] h-[230px] md:w-[260px] md:h-[380px] cursor-crosshair transition-transform active:scale-90 ${isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}
+      style={fanStyle}
     >
-      <div className="relative w-full h-full preserve-3d">
+      <div className="w-full h-full preserve-3d" style={{ animation: isFanned ? `drift 8s ease-in-out infinite ${delay}` : 'none' }}>
         <div className={`absolute inset-0 rounded-2xl flex flex-col items-center justify-center transition-all duration-1000 ${isRevealed ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
-          style={{ background: 'radial-gradient(circle at center, #111 0%, #000 100%)', boxShadow: isRevealed ? `0 0 50px ${glowColor}33` : 'none' }}>
-          <img src={imageSrc} alt={title} className="absolute w-[140%] max-w-none pointer-events-none z-10"
-            style={{ top: '45%', left: '50%', transform: 'translate(-50%, -50%)', filter: isRevealed ? `drop-shadow(0 0 30px ${glowColor})` : 'none' }} />
+          style={{ background: 'transparent', boxShadow: isRevealed ? `0 0 50px ${glowColor}33` : 'none' }}>
+          <img 
+            src={imageSrc} 
+            alt={title} 
+            className="absolute w-[180%] h-[180%] object-contain max-w-none pointer-events-none z-10"
+            style={{ 
+                top: '40%', 
+                left: '50%', 
+                transform: 'translate(-50%, -50%)', 
+                filter: isRevealed ? `drop-shadow(0 0 30px ${glowColor})` : 'none' 
+            }} 
+          />
           <div className="absolute bottom-10 z-20 text-center">
             <div className="text-white text-2xl md:text-4xl font-black" style={{ textShadow: `0 0 20px ${glowColor}` }}>{prize}</div>
             <div className="text-[8px] md:text-[10px] text-white/40 tracking-[4px] uppercase mt-2">{title}</div>
           </div>
         </div>
-
-        <div className={`absolute inset-0 z-30 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-7xl md:text-9xl text-white/5 shadow-2xl transition-all duration-150 ${isRevealed ? 'animate-shatter pointer-events-none' : 'opacity-100'}`}>
-          <span className="select-none font-black italic opacity-20">{suit}</span>
+        <div className={`absolute inset-0 z-30 overflow-hidden bg-transparent border border-white/10 rounded-2xl flex items-center justify-center transition-all duration-150 ${isRevealed ? 'animate-shatter pointer-events-none' : 'opacity-100'}`}>
+          <img src={frontImage} alt="card face" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+          {isCracking && <CrackedOverlay color={glowColor} />}
         </div>
+        {isRevealed && <ShatterEffect color={glowColor} />}
       </div>
     </div>
   );
 }
 
 export default function BorderlandGame() {
-  const [currentShotIndex, setCurrentShotIndex] = useState(0);
+  const [isFanned, setIsFanned] = useState(false);
   const [revealedIds, setRevealedIds] = useState<string[]>([]);
-  const [isAutoAiming, setIsAutoAiming] = useState(false);
+  const [crackingId, setCrackingId] = useState<string | null>(null);
+  const [isFiring, setIsFiring] = useState(false);
+  const [activeColor, setActiveColor] = useState('#ffffff');
+  const [isAutoMode, setIsAutoMode] = useState(false);
   const [shake, setShake] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const gunRef = useRef<HTMLDivElement>(null);
   const muzzleRef = useRef<HTMLDivElement>(null);
   const laserRef = useRef<HTMLDivElement>(null);
+  
+  // Audio Refs
+  const breakSound = useRef<HTMLAudioElement | null>(null);
+  const laserSound = useRef<HTMLAudioElement | null>(null);
+  const ambientSound = useRef<HTMLAudioElement | null>(null);
+  const audioUnlocked = useRef(false);
 
-  // 1. Mouse Follow (Disabled during auto-aim)
+  const isGameOver = revealedIds.length >= SHOOT_SEQUENCE.length;
+
+  const tryStartAmbient = () => {
+    if (audioUnlocked.current || !ambientSound.current) return;
+    
+    // Play with catch to handle browser's NotAllowedError silently
+    ambientSound.current.play()
+      .then(() => { 
+        audioUnlocked.current = true; 
+      })
+      .catch(() => {
+        // Silent catch: Browser still blocking, wait for next interaction
+      });
+
+    // Prime the effects
+    [breakSound.current, laserSound.current].forEach(s => {
+      if (s) {
+        s.muted = true;
+        s.play().then(() => { 
+            s.pause(); 
+            s.muted = false; 
+            s.currentTime = 0; 
+        }).catch(() => {});
+      }
+    });
+  };
+
+  useEffect(() => {
+    breakSound.current = new Audio('/glass-break.mp3');
+    laserSound.current = new Audio('/laser.mp3');
+    ambientSound.current = new Audio('/ambient-hum.mp3');
+
+    if (ambientSound.current) {
+      ambientSound.current.loop = true;
+      ambientSound.current.volume = 0.3;
+    }
+
+    const fannedTimer = setTimeout(() => setIsFanned(true), 1000);
+
+    return () => {
+      clearTimeout(fannedTimer);
+      ambientSound.current?.pause();
+    };
+  }, []);
+
+  // Update volume when mute state changes
+  useEffect(() => {
+    if (ambientSound.current) ambientSound.current.muted = isMuted;
+    if (breakSound.current) breakSound.current.muted = isMuted;
+    if (laserSound.current) laserSound.current.muted = isMuted;
+  }, [isMuted]);
+
+  // Auto-mode logic
+  useEffect(() => {
+    if (!isFanned || isGameOver) return;
+    if (revealedIds.length === 0 && !isAutoMode) {
+      const startAutoTimer = setTimeout(() => setIsAutoMode(true), 4000);
+      return () => clearTimeout(startAutoTimer);
+    }
+    if (isAutoMode && !isFiring) {
+      const nextId = SHOOT_SEQUENCE.find(id => !revealedIds.includes(id));
+      const nextCard = CARDS_DATA.find(c => c.id === nextId);
+      if (nextCard) {
+        const autoShootTimer = setTimeout(() => handleShoot(nextCard.id, nextCard.color), 1500);
+        return () => clearTimeout(autoShootTimer);
+      }
+    }
+  }, [isFanned, revealedIds, isAutoMode, isFiring, isGameOver]);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isAutoAiming || !gunRef.current) return;
+      if (isFiring || isGameOver || !gunRef.current) return;
       const sway = (e.clientX - window.innerWidth / 2) / 40;
       gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px))`;
+      gunRef.current.style.setProperty('--sway', `${sway}px`);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isAutoAiming]);
+  }, [isFiring, isGameOver]);
 
-  // 2. Immediate Sequential Shooting Logic
-  useEffect(() => {
-    // If we haven't finished the sequence, trigger the next shot
-    if (currentShotIndex < SHOOT_SEQUENCE.length) {
-      const nextTarget = SHOOT_SEQUENCE[currentShotIndex];
-      
-      // Small delay (500ms) between cards so it doesn't look like a glitch
-      const timeout = setTimeout(() => {
-        handleShoot(nextTarget);
-      }, 800); 
-
-      return () => clearTimeout(timeout);
-    }
-  }, [currentShotIndex]); // Fires every time currentShotIndex changes
-
-  const handleShoot = async (targetId: string) => {
-    if (isAutoAiming || revealedIds.includes(targetId)) return;
-
-    setIsAutoAiming(true);
+  const handleShoot = async (targetId: string, color: string) => {
+    if (!isFanned || isFiring || revealedIds.includes(targetId)) return;
     
+    tryStartAmbient();
+
     const targetEl = document.getElementById(targetId);
-    if (!targetEl || !gunRef.current || !laserRef.current || !muzzleRef.current) {
-      setIsAutoAiming(false);
-      return;
-    }
+    if (!targetEl || !gunRef.current || !laserRef.current || !muzzleRef.current) return;
 
     const rect = targetEl.getBoundingClientRect();
     const tx = rect.left + rect.width / 2;
     const ty = rect.top + rect.height / 2;
     const sway = (tx - window.innerWidth / 2) / 4;
 
-    // 1. Move Gun to Target
-    gunRef.current.style.transition = "transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)";
+    gunRef.current.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
     gunRef.current.style.transform = `translateX(calc(-50% + ${sway}px)) scale(1.1)`;
+    gunRef.current.style.setProperty('--sway', `${sway}px`);
 
-    // Wait for gun to arrive
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 400));
 
-    // 2. Fire Laser
+    if (laserSound.current) {
+        laserSound.current.currentTime = 0;
+        laserSound.current.play().catch(() => {});
+    }
+
+    setIsFiring(true);
+    setActiveColor(color);
+
     const mPos = muzzleRef.current.getBoundingClientRect();
-    const originX = mPos.left;
+    const originX = mPos.left + mPos.width / 2;
     const originY = mPos.top;
     const angle = Math.atan2(ty - originY, tx - originX);
     const dist = Math.sqrt(Math.pow(ty - originY, 2) + Math.pow(tx - originX, 2));
@@ -830,64 +265,128 @@ export default function BorderlandGame() {
     laser.style.top = `${originY}px`;
     laser.style.height = `${dist}px`;
     laser.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
+    
+    laser.style.backgroundColor = 'white';
+    laser.style.boxShadow = `0 0 20px ${color}, 0 0 40px ${color}`;
     laser.style.opacity = '1';
     
     setShake(true);
+    setCrackingId(targetId); 
+    
+    if (breakSound.current) {
+        breakSound.current.currentTime = 0;
+        breakSound.current.play().catch(() => {});
+    }
 
-    // 3. Impact & Cleanup
     setTimeout(() => {
       laser.style.opacity = '0';
       setShake(false);
       setRevealedIds(prev => [...prev, targetId]);
-      setIsAutoAiming(false);
-      
-      // This state update triggers the useEffect for the NEXT card
-      setCurrentShotIndex(prev => prev + 1);
-    }, 200);
+      setCrackingId(null); 
+      setIsFiring(false);
+    }, 400);
   };
 
+  const handleManualClick = (id: string, color: string) => {
+    setIsAutoMode(false);
+    handleShoot(id, color);
+  };
+
+  const CARDS_DATA = [
+    { id: "c1", prize: "₹15,000", color: "#1eafd7", img: "queen_trophy.png", frontImg: "heartofqueen.png", delay: "0s" },
+    { id: "c2", prize: "₹25,000", color: "#fb923c", img: "king_trophy.png", frontImg: "kingofspades.png", delay: "-2s" },
+    { id: "c3", prize: "₹10,000", color: "#2bff8a", img: "jack_trophy.png", frontImg: "jackofclubs.png", delay: "-4s" }
+  ];
+
   return (
-    <div className={`relative w-full h-screen overflow-hidden bg-black transition-transform duration-75 ${shake ? 'scale-105' : 'scale-100'}`}>
-      <div className="fixed inset-0 z-0 bg-center bg-cover" style={{ backgroundImage: "url('/bg_image.jpeg')", filter: 'brightness(0.3) contrast(1.2)' }} />
+    <div 
+      className={`relative w-full h-screen overflow-hidden bg-black transition-transform duration-75 ${shake ? 'scale-[1.02]' : 'scale-100'}`}
+      onPointerDown={tryStartAmbient}
+    >
+      <div className="fixed inset-0 z-0 bg-center bg-cover" style={{ backgroundImage: "url('/bgimage.png')", filter: 'brightness(0.5) contrast(1.2)' }} />
       
-      {/* HUD */}
-      <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[4000] text-center">
-        <div className="text-[10px] text-white/40 font-bold uppercase tracking-[5px] mb-1">
-            System Status
-        </div>
-        <div className={`text-6xl font-black transition-all duration-500 ${currentShotIndex < 3 ? 'text-red-600 animate-pulse' : 'text-green-500'}`}>
-          {currentShotIndex < 3 ? "EXECUTING..." : "GAME CLEAR"}
+      {/* Audio Toggle */}
+      <button 
+        onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+        className="fixed top-6 right-6 z-[5000] p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all active:scale-90"
+      >
+        {isMuted ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        )}
+      </button>
+
+      <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[4000] text-center w-full">
+        <h1 className="text-white text-4xl md:text-6xl font-extrabold tracking-wide" style={{ textShadow: '0 0 20px #ff5555' }}>BORDERLAND PRIZE VAULT</h1>
+         <p className="text-white/60 mt-2 text-sm md:text-base tracking-wide uppercase font-bold tracking-[0.2em]">SHOOT THE CARDS TO REVEAL THE PRIZES!</p>
+      </div>
+
+      <div ref={laserRef} className="fixed w-[4px] z-[1500] pointer-events-none origin-top opacity-0 transition-opacity duration-100" />
+
+      <div 
+        ref={gunRef} 
+        className={`fixed left-1/2 w-[140px] h-[220px] z-[2000] pointer-events-none -translate-x-1/2 transition-all duration-700 ease-in-out ${isFiring ? 'animate-recoil' : ''} ${isGameOver ? '-bottom-64 opacity-0' : '-bottom-10 opacity-100'}`}
+        style={{ '--sway': '0px' } as any}
+      >
+        <div className="relative w-12 h-64 mx-auto">
+          {isFiring && (
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 z-50 pointer-events-none">
+                <div className="absolute inset-0 bg-white rounded-full blur-md animate-muzzle-flare" />
+                <div className="absolute inset-0 rounded-full blur-2xl animate-muzzle-flare" style={{ backgroundColor: activeColor, animationDelay: '50ms', opacity: 0.6 }} />
+            </div>
+          )}
+          <div className="w-full h-full bg-gradient-to-r from-neutral-900 via-neutral-600 to-neutral-900 border-x border-white/20 rounded-t-xl shadow-[inset_0_2px_15px_rgba(0,0,0,0.9)]">
+            <div ref={muzzleRef} className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-6 bg-neutral-800 rounded-t-lg border-t border-white/40 shadow-xl" />
+          </div>
         </div>
       </div>
 
-      <div ref={laserRef} className="fixed w-[4px] bg-white shadow-[0_0_20px_#ff1111] z-[1500] pointer-events-none origin-top opacity-0" />
-
-      {/* Gun */}
-      <div ref={gunRef} className="fixed -bottom-10 left-1/2 w-[140px] h-[320px] z-[2000] pointer-events-none" style={{ transform: 'translateX(-50%)' }}>
-        <div className="relative w-10 h-64 mx-auto bg-gradient-to-b from-neutral-800 to-black border-x border-white/10 rounded-t-md">
-          <div ref={muzzleRef} className="absolute top-0 left-1/2" />
-        </div>
-      </div>
-
-      {/* Arena */}
-      <div className="relative z-[1000] flex items-center justify-center h-full gap-8 md:gap-20 perspective-[2000px]">
-        <TrophyCard id="c1" suit="♥" title="QUEEN OF HEARTS" prize="15,000" glowColor="#1eafd7" imageSrc="queen_trophy.png" 
-          isRevealed={revealedIds.includes('c1')} delay="0s" positionOrder="order-1" onManualClick={handleShoot} />
-        
-        <TrophyCard id="c2" suit="♠" title="KING OF SPADES" prize="25,000" glowColor="#ff4d4d" imageSrc="king_trophy.png" 
-          isRevealed={revealedIds.includes('c2')} delay="-2s" positionOrder="order-2" onManualClick={handleShoot} />
-        
-        <TrophyCard id="c3" suit="♣" title="JACK OF CLUBS" prize="10,000" glowColor="#2bff8a" imageSrc="jack_trophy.png" 
-          isRevealed={revealedIds.includes('c3')} delay="-4s" positionOrder="order-3" onManualClick={handleShoot} />
+      <div className="relative flex items-center justify-center h-full w-full perspective-[2000px]">
+        {CARDS_DATA.map((card, idx) => (
+          <TrophyCard 
+            key={card.id}
+            id={card.id}
+            index={idx}
+            isFanned={isFanned}
+            prize={card.prize}
+            glowColor={card.color}
+            isRevealed={revealedIds.includes(card.id)}
+            isCracking={crackingId === card.id}
+            delay={card.delay}
+            imageSrc={card.img}
+            frontImage={card.frontImg}
+            onManualClick={handleManualClick}
+          />
+        ))}
       </div>
 
       <style jsx global>{`
         @keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        @keyframes shatter {
-          0% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(1.8); filter: blur(10px); }
+        @keyframes impact-flash { 0% { opacity: 0; } 20% { opacity: 0.8; } 100% { opacity: 0; } }
+        @keyframes fallDown {
+          0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+          100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
         }
+        @keyframes shatter {
+          0% { opacity: 1; transform: scale(1); filter: contrast(1); }
+          20% { opacity: 1; transform: scale(1.05) rotate(2deg); filter: contrast(2) brightness(2); }
+          100% { opacity: 0; transform: scale(1.8); filter: blur(20px) brightness(4); }
+        }
+        @keyframes recoil {
+          0% { transform: translateX(calc(-50% + var(--sway))) translateY(0) scale(1.1); }
+          20% { transform: translateX(calc(-50% + var(--sway))) translateY(40px) scale(1.25); }
+          100% { transform: translateX(calc(-50% + var(--sway))) translateY(0) scale(1.1); }
+        }
+        @keyframes muzzle-flare {
+          0% { transform: scale(0); opacity: 0; }
+          20% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        .animate-recoil { animation: recoil 0.15s ease-out; }
+        .animate-muzzle-flare { animation: muzzle-flare 0.2s ease-out forwards; }
         .animate-shatter { animation: shatter 0.5s forwards ease-out; }
+        .animate-impact-flash { animation: impact-flash 0.3s forwards; }
         .preserve-3d { transform-style: preserve-3d; }
       `}</style>
     </div>
